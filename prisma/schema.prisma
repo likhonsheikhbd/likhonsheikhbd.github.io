@@ -1,0 +1,751 @@
+// AstroBlog Ω - Complete Database Schema
+// Created by Likhon Sheikh - Passionate Software Developer & Ethical Hacker from Bangladesh
+// Optimized for SEO, security, and performance with Row-Level Security (RLS)
+
+generator client {
+  provider = "prisma-client-js"
+  // Enable preview features for enhanced performance and functionality
+  previewFeatures = ["fullTextSearch", "views", "multiSchema", "relationJoins"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // Enable multiple schemas for better organization
+  schemas   = ["public", "auth", "analytics"]
+}
+
+// ============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================================================
+
+/// User model with comprehensive profile information and security features
+/// Implements security best practices learned from ethical hacking experience
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  username      String?   @unique // For SEO-friendly author URLs
+  image         String?
+  bio           String?   @db.Text
+  website       String?
+  location      String?   // Bangladesh, Austin, etc.
+  
+  // Security fields inspired by ethical hacking practices
+  role          UserRole  @default(USER)
+  status        UserStatus @default(ACTIVE)
+  emailVerified DateTime?
+  lastLoginAt   DateTime?
+  loginAttempts Int       @default(0)
+  lockedUntil   DateTime?
+  
+  // Audit fields for security tracking
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     String?   // For admin-created accounts
+  
+  // Social media links for author profiles and SEO
+  githubHandle    String? // https://github.com/likhonsheikhbd
+  twitterHandle   String? // https://x.com/likhonsheikhbd  
+  telegramHandle  String? // https://t.me/likhonsheikhbd
+  linkedinHandle  String?
+  
+  // SEO and content metrics
+  totalPosts    Int @default(0)
+  totalViews    Int @default(0)
+  followerCount Int @default(0)
+  
+  // Relations
+  posts         Post[]
+  accounts      Account[]
+  sessions      Session[]
+  media         Media[]
+  comments      Comment[]
+  postLikes     PostLike[]
+  auditLogs     AuditLog[]
+  pageViews     PageView[]
+  
+  // Indexes for performance optimization
+  @@index([email])
+  @@index([username])
+  @@index([role, status])
+  @@index([createdAt])
+  @@index([totalPosts, totalViews]) // For author rankings
+  @@map("users")
+  @@schema("auth")
+}
+
+/// OAuth account information for NextAuth integration
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String  // oauth, email, credentials
+  provider          String  // google, github, email
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  // Security enhancement: track token usage
+  lastUsedAt        DateTime?
+  createdAt         DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+  @@schema("auth")
+}
+
+/// Session management for JWT tokens with security tracking
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  // Enhanced session tracking for security
+  ipAddress    String?  @db.VarChar(45) // IPv6 support
+  userAgent    String?  @db.Text
+  country      String?  @db.VarChar(2)  // ISO country code
+  city         String?  @db.VarChar(100)
+  device       String?  @db.VarChar(50) // mobile, desktop, tablet
+  browser      String?  @db.VarChar(50)
+  
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([expires])
+  @@index([country, city]) // For analytics
+  @@map("sessions")
+  @@schema("auth")
+}
+
+/// Email verification and password reset tokens
+model VerificationToken {
+  identifier String   // email address
+  token      String   @unique
+  expires    DateTime
+  type       TokenType @default(EMAIL_VERIFICATION)
+  createdAt  DateTime @default(now())
+  
+  @@unique([identifier, token])
+  @@index([expires])
+  @@map("verification_tokens")
+  @@schema("auth")
+}
+
+// ============================================================================
+// BLOG CONTENT MANAGEMENT
+// ============================================================================
+
+/// Blog posts with comprehensive SEO and content management features
+model Post {
+  id          String     @id @default(cuid())
+  title       String     @db.VarChar(200)
+  slug        String     @unique @db.VarChar(200)
+  excerpt     String?    @db.VarChar(500)
+  content     String     @db.Text
+  
+  // Content status and publishing
+  status      PostStatus @default(DRAFT)
+  featured    Boolean    @default(false)
+  publishedAt DateTime?
+  scheduledAt DateTime?  // For scheduled publishing
+  
+  // SEO optimization fields - crucial for search rankings
+  metaTitle       String?   @db.VarChar(60)   // Optimal length for Google
+  metaDescription String?   @db.VarChar(160)  // Optimal length for Google
+  ogImage         String?   // Open Graph image URL
+  ogImageAlt      String?   @db.VarChar(125)  // Alt text for OG image
+  keywords        String[]  // Array of SEO keywords
+  canonicalUrl    String?   // For duplicate content management
+  
+  // Content categorization
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  
+  // Author information
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Content analytics and engagement
+  views           Int       @default(0)
+  uniqueViews     Int       @default(0)
+  readingTime     Int?      // Estimated reading time in minutes
+  wordCount       Int?      // For analytics and SEO
+  shareCount      Int       @default(0)
+  
+  // SEO performance tracking
+  searchImpressions Int     @default(0) // From Google Search Console
+  searchClicks      Int     @default(0) // From Google Search Console
+  avgPosition       Float?  // Average search position
+  
+  // Audit and versioning
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastEditedBy    String?   // Track who made the last edit
+  version         Int       @default(1)
+  
+  // Relations
+  tags            PostTag[]
+  media           PostMedia[]
+  comments        Comment[]
+  likes           PostLike[]
+  revisions       PostRevision[]
+  
+  // Full-text search index for better search functionality
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([slug])
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([featured, status])
+  @@index([createdAt(sort: Desc)])
+  @@index([views(sort: Desc)]) // For popular posts
+  @@index([searchClicks(sort: Desc)]) // For SEO performance
+  // Full-text search on title and content
+  @@index([title, content])
+  @@map("posts")
+}
+
+/// Categories for organizing blog content with SEO optimization
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(50)
+  slug        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(200)
+  color       String   @default("#3B82F6") @db.VarChar(7) // Hex color
+  icon        String?  @db.VarChar(50) // Icon name for UI
+  
+  // SEO fields for category pages
+  metaTitle       String? @db.VarChar(60)
+  metaDescription String? @db.VarChar(160)
+  ogImage         String?
+  
+  // Hierarchy support for nested categories
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  
+  // Content organization and analytics
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  postCount   Int      @default(0) // Automatically updated
+  totalViews  Int      @default(0) // Sum of all posts in category
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  posts       Post[]
+  
+  @@index([slug])
+  @@index([parentId])
+  @@index([isActive, sortOrder])
+  @@index([postCount(sort: Desc)]) // For popular categories
+  @@map("categories")
+}
+
+/// Tags for flexible content categorization and SEO
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(50)
+  slug        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(200)
+  color       String   @default("#3B82F6") @db.VarChar(7)
+  
+  // SEO optimization for tag pages
+  metaTitle       String? @db.VarChar(60)
+  metaDescription String? @db.VarChar(160)
+  ogImage         String?
+  
+  // Tag analytics and performance
+  usageCount  Int      @default(0) // Automatically updated
+  totalViews  Int      @default(0) // Sum of all posts with this tag
+  isActive    Boolean  @default(true)
+  isTrending  Boolean  @default(false) // For trending tags
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  posts       PostTag[]
+  
+  @@index([slug])
+  @@index([usageCount(sort: Desc)])
+  @@index([totalViews(sort: Desc)])
+  @@index([isActive])
+  @@index([isTrending])
+  @@map("tags")
+}
+
+/// Many-to-many relationship between posts and tags
+model PostTag {
+  postId String
+  tagId  String
+  
+  // Additional metadata for the relationship
+  createdAt DateTime @default(now())
+  createdBy String?  // Who added this tag
+  
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+  @@map("post_tags")
+}
+
+// ============================================================================
+// MEDIA MANAGEMENT WITH VERCEL BLOB INTEGRATION
+// ============================================================================
+
+/// Media files with comprehensive metadata for SEO and management
+model Media {
+  id          String    @id @default(cuid())
+  filename    String    @db.VarChar(255)
+  originalName String   @db.VarChar(255)
+  url         String    @db.VarChar(500) // Vercel Blob URL
+  thumbnailUrl String?  @db.VarChar(500)
+  
+  // File metadata
+  mimeType    String    @db.VarChar(100)
+  size        Int       // File size in bytes
+  width       Int?      // For images
+  height      Int?      // For images
+  duration    Int?      // For videos/audio in seconds
+  
+  // SEO and accessibility
+  alt         String?   @db.VarChar(200) // Alt text for images
+  caption     String?   @db.VarChar(500)
+  title       String?   @db.VarChar(200)
+  
+  // Organization and metadata
+  folder      String?   @db.VarChar(100) // Virtual folder organization
+  tags        String[]  // Tags for media organization
+  
+  // Vercel Blob specific fields
+  blobUrl     String?   @db.VarChar(500) // Original Vercel Blob URL
+  pathname    String?   @db.VarChar(255) // Blob pathname
+  
+  // Upload information
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedAt   DateTime @default(now())
+  
+  // Usage tracking for analytics
+  usageCount   Int      @default(0)
+  lastUsedAt   DateTime?
+  downloadCount Int     @default(0)
+  
+  // Relations
+  posts        PostMedia[]
+  
+  @@index([uploadedById])
+  @@index([mimeType])
+  @@index([uploadedAt(sort: Desc)])
+  @@index([folder])
+  @@index([usageCount(sort: Desc)])
+  @@map("media")
+}
+
+/// Many-to-many relationship between posts and media
+model PostMedia {
+  postId  String
+  mediaId String
+  
+  // Additional context for media usage
+  context String? @db.VarChar(50) // 'featured', 'inline', 'gallery', etc.
+  order   Int?    // For ordering media within a post
+  
+  post  Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media Media @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, mediaId])
+  @@index([postId])
+  @@index([mediaId])
+  @@map("post_media")
+}
+
+// ============================================================================
+// ENGAGEMENT & SOCIAL FEATURES
+// ============================================================================
+
+/// Comments system for blog engagement with moderation
+model Comment {
+  id        String        @id @default(cuid())
+  content   String        @db.Text
+  status    CommentStatus @default(PENDING)
+  
+  // Comment hierarchy for replies
+  parentId  String?
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentReplies")
+  
+  // Relations
+  postId    String
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String?       // Null for anonymous comments
+  author    User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  // Anonymous comment fields
+  guestName  String?      @db.VarChar(100)
+  guestEmail String?      @db.VarChar(255)
+  
+  // Moderation and spam prevention
+  ipAddress  String?      @db.VarChar(45) // IPv6 support
+  userAgent  String?      @db.Text
+  isSpam     Boolean      @default(false)
+  spamScore  Float?       // Spam detection score
+  
+  // Engagement metrics
+  likeCount  Int          @default(0)
+  replyCount Int          @default(0)
+  
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  
+  @@index([postId, status])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt(sort: Desc)])
+  @@index([isSpam])
+  @@map("comments")
+}
+
+/// Post likes/reactions system for engagement tracking
+model PostLike {
+  id     String   @id @default(cuid())
+  postId String
+  userId String
+  type   LikeType @default(LIKE) // Support for different reaction types
+  
+  // Analytics fields
+  ipAddress String? @db.VarChar(45)
+  userAgent String? @db.Text
+  referrer  String? @db.VarChar(500)
+  
+  createdAt DateTime @default(now())
+  
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId, type])
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("post_likes")
+}
+
+// ============================================================================
+// CONTENT VERSIONING & AUDIT
+// ============================================================================
+
+/// Post revision history for content management and SEO tracking
+model PostRevision {
+  id        String   @id @default(cuid())
+  postId    String
+  title     String   @db.VarChar(200)
+  content   String   @db.Text
+  excerpt   String?  @db.VarChar(500)
+  
+  // SEO fields for tracking changes
+  metaTitle       String? @db.VarChar(60)
+  metaDescription String? @db.VarChar(160)
+  keywords        String[]
+  
+  // Revision metadata
+  version   Int
+  changeLog String?  @db.Text // Description of changes made
+  
+  // Performance comparison
+  wordCount    Int?
+  readingTime  Int?
+  
+  // Author of the revision
+  createdBy String
+  createdAt DateTime @default(now())
+  
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@index([postId, version])
+  @@index([createdAt(sort: Desc)])
+  @@map("post_revisions")
+}
+
+/// Comprehensive audit logging for security and compliance
+model AuditLog {
+  id        String    @id @default(cuid())
+  
+  // Action details
+  action    String    @db.VarChar(50)  // CREATE, UPDATE, DELETE, LOGIN, etc.
+  resource  String    @db.VarChar(50)  // POST, USER, MEDIA, etc.
+  resourceId String?  // ID of the affected resource
+  
+  // User context
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Request context for security analysis
+  ipAddress String?   @db.VarChar(45)
+  userAgent String?   @db.Text
+  referrer  String?   @db.VarChar(500)
+  
+  // Change details
+  oldValues Json?     // Previous state
+  newValues Json?     // New state
+  metadata  Json?     // Additional context
+  
+  // Security classification
+  severity  LogSeverity @default(INFO)
+  
+  createdAt DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([action, resource])
+  @@index([createdAt(sort: Desc)])
+  @@index([severity])
+  @@map("audit_logs")
+  @@schema("analytics")
+}
+
+// ============================================================================
+// ANALYTICS & SEO TRACKING
+// ============================================================================
+
+/// Page view analytics for SEO and content performance
+model PageView {
+  id        String   @id @default(cuid())
+  
+  // Page information
+  path      String   @db.VarChar(500)
+  title     String?  @db.VarChar(200)
+  referrer  String?  @db.VarChar(500)
+  
+  // User context
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId String?  @db.VarChar(100)
+  
+  // Technical details for analytics
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.Text
+  country   String?  @db.VarChar(2)   // ISO country code
+  city      String?  @db.VarChar(100)
+  device    String?  @db.VarChar(50)  // mobile, desktop, tablet
+  browser   String?  @db.VarChar(50)
+  os        String?  @db.VarChar(50)
+  
+  // Performance metrics for Core Web Vitals
+  loadTime  Int?     // Page load time in milliseconds
+  lcp       Float?   // Largest Contentful Paint
+  fid       Float?   // First Input Delay
+  cls       Float?   // Cumulative Layout Shift
+  
+  // SEO metrics
+  isBot     Boolean  @default(false) // Search engine bot detection
+  botName   String?  @db.VarChar(50) // Googlebot, Bingbot, etc.
+  
+  createdAt DateTime @default(now())
+  
+  @@index([path])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([country, city])
+  @@index([device, browser])
+  @@index([isBot, botName])
+  @@map("page_views")
+  @@schema("analytics")
+}
+
+/// Search queries for SEO optimization and content strategy
+model SearchQuery {
+  id        String   @id @default(cuid())
+  query     String   @db.VarChar(200)
+  results   Int      @default(0) // Number of results returned
+  
+  // User context
+  userId    String?
+  sessionId String?  @db.VarChar(100)
+  ipAddress String?  @db.VarChar(45)
+  
+  // Search context
+  source    String?  @db.VarChar(50) // 'internal', 'google', 'bing', etc.
+  page      Int      @default(1)     // Search results page
+  
+  // Performance metrics
+  responseTime Int?   // Search response time in milliseconds
+  
+  createdAt DateTime @default(now())
+  
+  @@index([query])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([source])
+  @@map("search_queries")
+  @@schema("analytics")
+}
+
+/// SEO performance tracking from Google Search Console
+model SeoMetric {
+  id        String   @id @default(cuid())
+  
+  // Page/query information
+  page      String   @db.VarChar(500)
+  query     String?  @db.VarChar(200)
+  country   String?  @db.VarChar(2)
+  device    String?  @db.VarChar(20) // DESKTOP, MOBILE, TABLET
+  
+  // Google Search Console metrics
+  impressions Int    @default(0)
+  clicks      Int    @default(0)
+  ctr         Float? // Click-through rate
+  position    Float? // Average position
+  
+  // Date for time-series analysis
+  date        DateTime @db.Date
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([page, query, country, device, date])
+  @@index([page, date])
+  @@index([query, date])
+  @@index([clicks(sort: Desc)])
+  @@index([impressions(sort: Desc)])
+  @@map("seo_metrics")
+  @@schema("analytics")
+}
+
+// ============================================================================
+// SYSTEM CONFIGURATION
+// ============================================================================
+
+/// Application settings and configuration
+model Setting {
+  id    String      @id @default(cuid())
+  key   String      @unique @db.VarChar(100)
+  value String      @db.Text
+  type  SettingType @default(STRING)
+  
+  // Metadata
+  description String?   @db.VarChar(500)
+  category    String?   @db.VarChar(50)
+  isPublic    Boolean   @default(false) // Can be accessed via API
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  updatedBy   String?   // Who last updated this setting
+  
+  @@index([category])
+  @@index([isPublic])
+  @@map("settings")
+}
+
+/// Newsletter subscriptions for email marketing and SEO
+model Subscriber {
+  id        String           @id @default(cuid())
+  email     String           @unique @db.VarChar(255)
+  status    SubscriberStatus @default(PENDING)
+  
+  // Subscription preferences
+  tags      String[]         // Interest tags
+  frequency String           @default("weekly") // daily, weekly, monthly
+  
+  // Metadata for analytics
+  source    String?          @db.VarChar(50) // Where they subscribed from
+  ipAddress String?          @db.VarChar(45)
+  referrer  String?          @db.VarChar(500)
+  
+  // Verification and management
+  verifiedAt    DateTime?
+  unsubscribedAt DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([source])
+  @@map("subscribers")
+}
+
+// ============================================================================
+// ENUMS - Type Definitions
+// ============================================================================
+
+enum UserRole {
+  USER      // Regular user - can comment and like
+  EDITOR    // Can create and edit posts
+  ADMIN     // Full system access
+  MODERATOR // Can moderate comments and users
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
+}
+
+enum LikeType {
+  LIKE
+  LOVE
+  LAUGH
+  ANGRY
+  SAD
+  INSIGHTFUL
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+  ARRAY
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  MAGIC_LINK
+}
+
+enum SubscriberStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+  BOUNCED
+}
+
+enum LogSeverity {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}

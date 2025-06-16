@@ -1,0 +1,98 @@
+# AstroBlog Ω - LLM Context File
+
+## Project Overview
+AstroBlog Ω is a modern, SEO-optimized blog platform built with Next.js 14, featuring security-first architecture and comprehensive search engine optimization. Created by Likhon Sheikh, a passionate software developer and ethical hacker from Bangladesh.
+
+## Architecture & Tech Stack
+
+### Frontend
+- Next.js 14 with App Router
+- TypeScript for type safety
+- Tailwind CSS with Geist Design System
+- Responsive, mobile-first design
+- Dark/light mode support
+
+### Backend
+- Neon Postgres with Prisma ORM
+- NextAuth v5 with JWT edge compatibility
+- Row-Level Security (RLS) implementation
+- Zod validation for all DTOs
+- Server Actions for internal operations
+- REST API endpoints (/api/v1/*) for external access
+
+### Security Features
+- Comprehensive input validation
+- XSS and injection attack prevention
+- Audit logging for compliance
+- Role-based access control
+- Session security with secure cookies
+
+### SEO Optimization
+- Technical SEO: Automated sitemaps, robots.txt, structured data
+- Performance: Core Web Vitals optimization, edge caching
+- Content SEO: Meta tags, Open Graph, canonical URLs
+- Analytics: Page view tracking, search query monitoring
+
+### Testing & CI/CD
+- Vitest for unit testing
+- Playwright for E2E testing
+- GitHub Actions for CI/CD pipeline
+- Automated testing, linting, and deployment
+
+## Key Features
+
+### Blog Management
+- Rich text editor with markdown support
+- Media management with Vercel Blob integration
+- Tag and category system
+- Draft, scheduled, and published post states
+- SEO optimization tools
+
+### User Management
+- Multi-provider authentication (Google, Email)
+- Role-based permissions (User, Editor, Admin, Moderator)
+- User profiles with social media links
+- Activity tracking and audit logs
+
+### Performance & SEO
+- Static site generation with ISR
+- Image optimization and lazy loading
+- Core Web Vitals monitoring
+- Structured data markup
+- Social media integration
+
+## Database Schema
+- Users: Authentication and profile management
+- Posts: Blog content with SEO fields
+- Tags: Content categorization
+- Media: File storage and management
+- Settings: Application configuration
+- Analytics: Performance tracking
+
+## Deployment
+- GitHub Pages: lkhonsheikhbd.github.io
+- Vercel: Production deployment
+- Static export for GitHub Pages compatibility
+- Environment-based configuration
+
+## Development Guidelines
+- TypeScript strict mode enabled
+- No 'any' types allowed
+- Comprehensive error handling
+- Security-first development practices
+- Performance optimization focus
+
+## Author Information
+Likhon Sheikh - Software Developer & Ethical Hacker from Bangladesh
+- GitHub: https://github.com/likhonsheikhbd
+- X (Twitter): https://x.com/likhonsheikhbd
+- Telegram: https://t.me/likhonsheikhbd
+
+## Project Goals
+1. Create a high-performance, SEO-optimized blog platform
+2. Demonstrate modern web development best practices
+3. Showcase security-first architecture principles
+4. Achieve top search engine rankings
+5. Provide a scalable, maintainable codebase
+
+This project serves as a comprehensive example of modern web development, combining performance, security, and SEO optimization in a production-ready application.
