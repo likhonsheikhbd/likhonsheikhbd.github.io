@@ -1,0 +1,86 @@
+{
+  "name": "AstroBlog Ω - Modern Next.js Blog Platform",
+  "short_name": "AstroBlog Ω",
+  "description": "A cutting-edge, SEO-optimized blog platform built with Next.js 15, featuring security-first architecture and comprehensive accessibility.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "categories": ["education", "technology", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "AstroBlog Ω Homepage"
+    },
+    {
+      "src": "/screenshot-narrow.jpg",
+      "sizes": "750x1334",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "AstroBlog Ω Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Articles",
+      "short_name": "Blog",
+      "description": "Read the latest articles and tutorials",
+      "url": "/blog/",
+      "icons": [
+        {
+          "src": "/shortcut-blog.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Browse Topics",
+      "short_name": "Tags",
+      "description": "Browse articles by topics and categories",
+      "url": "/tags/",
+      "icons": [
+        {
+          "src": "/shortcut-tags.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

@@ -1,13 +1,14 @@
 /**
- * Global Styles for AstroBlog Ω
+ * Global Styles - Mobile-First, Accessible Design
  *
- * Tailwind CSS with custom styles and optimizations
+ * Comprehensive global styles with CSS custom properties and accessibility features
  */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Custom Properties for theming */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -30,6 +31,12 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+
+    /* Custom properties for enhanced theming */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+    --shadow-elevation-low: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-elevation-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-elevation-high: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
 
   .dark {
@@ -55,6 +62,7 @@
   }
 }
 
+/* Base styles with accessibility improvements */
 @layer base {
   * {
     @apply border-border;
@@ -63,118 +71,157 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Improve text rendering */
-  html {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-
-  /* Focus styles for accessibility */
+  /* Improved focus styles for accessibility */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-ring;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
+  /* Skip link styles */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  /* Selection styles */
-  ::selection {
-    @apply bg-primary/20;
+  .sr-only:focus,
+  .sr-only:active {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* Improved heading hierarchy */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight;
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  h5 {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+
+  h6 {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+
+  /* Improved link styles */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  a:hover {
+    @apply text-primary;
+  }
+
+  /* Better button and interactive element styles */
+  button,
+  [role="button"] {
+    @apply transition-all duration-200;
+  }
+
+  /* Improved form elements */
+  input,
+  textarea,
+  select {
+    @apply transition-colors duration-200;
+  }
+
+  /* Better image handling */
+  img {
+    @apply max-w-full h-auto;
+  }
+
+  /* Responsive video embeds */
+  .video-responsive {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+  }
+
+  .video-responsive iframe,
+  .video-responsive object,
+  .video-responsive embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
   }
 }
 
+/* Component layer for reusable patterns */
 @layer components {
-  /* Custom prose styles for blog content */
-  .prose {
-    @apply max-w-none;
+  /* Container with responsive padding */
+  .container-responsive {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  .prose h1,
-  .prose h2,
-  .prose h3,
-  .prose h4,
-  .prose h5,
-  .prose h6 {
-    @apply font-bold text-foreground scroll-mt-20;
+  /* Gradient text effect */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
   }
 
-  .prose h1 {
-    @apply text-3xl md:text-4xl mb-6 mt-8;
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
-  .prose h2 {
-    @apply text-2xl md:text-3xl mb-4 mt-8;
+  /* Button loading state */
+  .button-loading {
+    @apply relative overflow-hidden;
   }
 
-  .prose h3 {
-    @apply text-xl md:text-2xl mb-3 mt-6;
+  .button-loading::after {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
   }
 
-  .prose h4 {
-    @apply text-lg md:text-xl mb-2 mt-4;
+  /* Skeleton loading animation */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
   }
 
-  .prose p {
-    @apply text-foreground leading-relaxed mb-4;
-  }
-
-  .prose a {
-    @apply text-primary no-underline hover:underline;
-  }
-
-  .prose strong {
-    @apply text-foreground font-semibold;
-  }
-
-  .prose code {
-    @apply text-foreground bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
-  }
-
-  .prose pre {
-    @apply bg-muted border rounded-lg p-4 overflow-x-auto;
-  }
-
-  .prose pre code {
-    @apply bg-transparent p-0;
-  }
-
-  .prose blockquote {
-    @apply border-l-4 border-primary bg-muted/50 pl-4 py-2 my-4 italic;
-  }
-
-  .prose ul,
-  .prose ol {
-    @apply mb-4 pl-6;
-  }
-
-  .prose li {
-    @apply mb-1;
-  }
-
-  .prose img {
-    @apply rounded-lg shadow-sm;
-  }
-
-  .prose table {
-    @apply w-full border-collapse border border-border;
-  }
-
-  .prose th,
-  .prose td {
-    @apply border border-border px-4 py-2;
-  }
-
-  .prose th {
-    @apply bg-muted font-semibold;
-  }
-}
-
-@layer utilities {
-  /* Line clamp utilities */
+  /* Text truncation utilities */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
@@ -195,6 +242,33 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+}
+
+/* Utility layer for custom utilities */
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--foreground));
+  }
 
   /* Animation utilities */
   .animate-fade-in {
@@ -205,25 +279,46 @@
     animation: slideUp 0.5s ease-out;
   }
 
-  /* Custom scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+  .animate-slide-down {
+    animation: slideDown 0.5s ease-out;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-muted;
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full;
+  /* Responsive text utilities */
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/50;
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl;
+  }
+
+  /* Spacing utilities for better mobile experience */
+  .space-y-responsive > * + * {
+    @apply mt-4 sm:mt-6;
+  }
+
+  .space-x-responsive > * + * {
+    @apply ml-4 sm:ml-6;
   }
 }
 
-/* Animations */
+/* Keyframe animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -244,6 +339,37 @@
   }
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
@@ -254,30 +380,17 @@
     @apply text-black bg-white;
   }
 
-  .prose a {
+  a {
     @apply text-black no-underline;
   }
 
-  .prose a::after {
+  a[href^="http"]:after {
     content: " (" attr(href) ")";
     @apply text-sm text-gray-600;
   }
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  :root {
-    --border: 0 0% 20%;
-    --ring: 0 0% 20%;
-  }
-
-  .dark {
-    --border: 0 0% 80%;
-    --ring: 0 0% 80%;
-  }
-}
-
-/* Reduced motion support */
+/* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -287,4 +400,22 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0% 0%;
+    --ring: 0 0% 0%;
+  }
+
+  .dark {
+    --border: 0 0% 100%;
+    --ring: 0 0% 100%;
+  }
+}
+
+/* Force color scheme for better dark mode support */
+:root {
+  color-scheme: light dark;
 }

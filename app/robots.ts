@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next"
 export const dynamic = "force-static"
 export const revalidate = false
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://lkhonsheikhbd.github.io"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://likhonsheikhbd.github.io"
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -12,12 +12,38 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/_next/", "/auth/"],
+        disallow: ["/admin/", "/api/", "/_next/", "/auth/", "/*.json$", "/private/", "/temp/"],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/admin/", "/api/", "/auth/"],
+        disallow: ["/admin/", "/api/", "/auth/", "/private/"],
+      },
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+        disallow: ["/admin/", "/api/", "/auth/", "/private/"],
+      },
+      // Block AI crawlers if needed
+      {
+        userAgent: "GPTBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "ChatGPT-User",
+        disallow: "/",
+      },
+      {
+        userAgent: "CCBot",
+        disallow: "/",
+      },
+      {
+        userAgent: "anthropic-ai",
+        disallow: "/",
+      },
+      {
+        userAgent: "Claude-Web",
+        disallow: "/",
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
